@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Movie Recommender</title>
+
+    <style>
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+ 
+
+        body {
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            min-height: 100vh;
+
+            padding: 20px;
+
+        }
+
+ 
+
+        .container {
+
+            max-width: 1200px;
+
+            margin: 0 auto;
+
+        }
+
+ 
+
+        .header {
+
+            text-align: center;
+
+            color: white;
+
+            margin-bottom: 50px;
+
+        }
+
+ 
+
+        .header h1 {
+
+            font-size: 3rem;
+
+            margin-bottom: 10px;
+
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+
+        }
+
+ 
+
+        .header p {
+
+            font-size: 1.2rem;
+
+            opacity: 0.9;
+
+        }
+
+ 
+
+        .search-container {
+
+            max-width: 800px;
+
+            margin: 0 auto 40px;
+
+        }
+
+ 
+
+        .search-box {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-bottom: 20px;
+
+        }
+
+ 
+
+        .search-input {
+
+            flex: 1;
+
+            padding: 15px 20px;
+
+            font-size: 1.1rem;
+
+            border: none;
+
+            border-radius: 10px;
+
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+        }
+
+ 
+
+        .search-button {
+
+            padding: 15px 40px;
+
+            background: #ffd700;
+
+            color: #333;
+
+            border: none;
+
+            border-radius: 10px;
+
+            font-size: 1.1rem;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: all 0.3s;
+
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+        }
+
+ 
+
+        .search-button:hover {
+
+            background: #ffed4e;
+
+            transform: translateY(-2px);
+
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+
+        }
+
+ 
+
+        .search-button:disabled {
+
+            opacity: 0.6;
+
+            cursor: not-allowed;
+
+        }
+
+ 
+
+        .examples {
+
+            text-align: center;
+
+            color: white;
+
+        }
+
+ 
+
+        .examples p {
+
+            margin-bottom: 10px;
+
+            opacity: 0.8;
+
+        }
+
+ 
+
+        .example-tag {
+
+            display: inline-block;
+
+            padding: 8px 15px;
+
+            margin: 5px;
+
+            background: rgba(255,255,255,0.2);
+
+            border-radius: 20px;
+
+            cursor: pointer;
+
+            transition: all 0.3s;
+
+            color: white;
+
+        }
+
+ 
+
+        .example-tag:hover {
+
+            background: rgba(255,255,255,0.3);
+
+            transform: translateY(-2px);
+
+        }
+
+ 
+
+        .error-message {
+
+            background: #ff6b6b;
+
+            color: white;
+
+            padding: 15px;
+
+            border-radius: 10px;
+
+            margin-bottom: 20px;
+
+            text-align: center;
+
+        }
+
+ 
+
+        .results-container {
+
+            margin-top: 40px;
+
+        }
+
+ 
+
+        .results-header {
+
+            color: white;
+
+            font-size: 2rem;
+
+            margin-bottom: 20px;
+
+        }
+
+ 
+
+        .movie-card {
+
+            background: white;
+
+            border-radius: 15px;
+
+            padding: 25px;
+
+            margin-bottom: 20px;
+
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+
+            transition: all 0.3s;
+
+        }
+
+ 
+
+        .movie-card:hover {
+
+            transform: translateY(-5px);
+
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+
+        }
+
+ 
+
+        .movie-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: start;
+
+            margin-bottom: 15px;
+
+        }
+
+ 
+
+        .movie-title {
+
+            font-size: 1.8rem;
+
+            font-weight: bold;
+
+            color: #333;
+
+            margin-bottom: 10px;
+
+        }
+
+ 
+
+        .rating {
+
+            background: #ffd700;
+
+            padding: 8px 15px;
+
+            border-radius: 10px;
+
+            font-weight: bold;
+
+            color: #333;
+
+        }
+
+ 
+
+        .genres {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 8px;
+
+            margin-bottom: 15px;
+
+        }
+
+ 
+
+        .genre-tag {
+
+            background: #667eea;
+
+            color: white;
+
+            padding: 5px 12px;
+
+            border-radius: 15px;
+
+            font-size: 0.9rem;
+
+        }
+
+ 
+
+        .movie-plot {
+
+            color: #555;
+
+            line-height: 1.6;
+
+            margin-bottom: 15px;
+
+        }
+
+ 
+
+        .movie-info {
+
+            color: #777;
+
+            font-size: 0.95rem;
+
+        }
+
+ 
+
+        .loading {
+
+            text-align: center;
+
+            color: white;
+
+            font-size: 1.5rem;
+
+            padding: 40px;
+
+        }
+
+ 
+
+        .empty-state {
+
+            text-align: center;
+
+            color: white;
+
+            padding: 60px 20px;
+
+        }
+
+ 
+
+        .empty-state svg {
+
+            width: 100px;
+
+            height: 100px;
+
+            margin-bottom: 20px;
+
+            opacity: 0.5;
+
+        }
+
+ 
+
+        @media (max-width: 768px) {
+
+            .header h1 {
+
+                font-size: 2rem;
+
+            }
+
+ 
+
+            .search-box {
+
+                flex-direction: column;
+
+            }
+
+ 
+
+            .movie-header {
+
+                flex-direction: column;
+
+            }
+
+ 
+
+            .rating {
+
+                margin-top: 10px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+
+            <h1>🎬 AI Movie Recommender</h1>
+
+            <p>Describe what you want to watch, and we'll find the perfect movie for you</p>
+
+        </div>
+
+ 
+
+        <div class="search-container">
+
+            <div class="search-box">
+
+                <input 
+
+                    type="text" 
+
+                    id="searchInput" 
+
+                    class="search-input" 
+
+                    placeholder="E.g., 'movie about princesses that involve dragons'"
+
+                >
+
+                <button id="searchButton" class="search-button">Search</button>
+
+            </div>
+
+ 
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+ 
+
+            <div class="examples">
+
+                <p>Try searching for:</p>
+
+                <span class="example-tag" onclick="setQuery('princesses with dragons')">princesses with dragons</span>
+
+                <span class="example-tag" onclick="setQuery('adventure with magic')">adventure with magic</span>
+
+                <span class="example-tag" onclick="setQuery('brave warrior')">brave warrior</span>
+
+            </div>
+
+        </div>
+
+ 
+
+        <div id="resultsContainer" class="results-container"></div>
+
+    </div>
+
+ 
+
+    <script>
+
+        const API_URL = 'api.php'; // Update this to your API endpoint if hosted elsewhere
+
+ 
+
+        const searchInput = document.getElementById('searchInput');
+
+        const searchButton = document.getElementById('searchButton');
+
+        const errorMessage = document.getElementById('errorMessage');
+
+        const resultsContainer = document.getElementById('resultsContainer');
+
+ 
+
+        function setQuery(query) {
+
+            searchInput.value = query;
+
+            searchMovies();
+
+        }
+
+ 
+
+        function showError(message) {
+
+            errorMessage.textContent = message;
+
+            errorMessage.style.display = 'block';
+
+            setTimeout(() => {
+
+                errorMessage.style.display = 'none';
+
+            }, 5000);
+
+        }
+
+ 
+
+        function showLoading() {
+
+            resultsContainer.innerHTML = '<div class="loading">Searching for movies...</div>';
+
+        }
+
+ 
+
+        function showEmptyState() {
+
+            resultsContainer.innerHTML = `
+
+                <div class="empty-state">
+
+                    <svg fill="currentColor" viewBox="0 0 24 24">
+
+                        <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
+
+                    </svg>
+
+                    <p style="font-size: 1.3rem;">Start by describing the movie you want to watch</p>
+
+                </div>
+
+            `;
+
+        }
+
+ 
+
+        function displayResults(movies) {
+
+            if (movies.length === 0) {
+
+                resultsContainer.innerHTML = `
+
+                    <div class="empty-state">
+
+                        <p style="font-size: 1.3rem;">No movies found matching your description.</p>
+
+                        <p>Try different keywords!</p>
+
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+ 
+
+            let html = '<h2 class="results-header">Recommended Movies</h2>';
+
+            
+
+            movies.forEach(movie => {
+
+                const genresHtml = movie.genres.map(g => 
+
+                    `<span class="genre-tag">${g}</span>`
+
+                ).join('');
+
+ 
+
+                html += `
+
+                    <div class="movie-card">
+
+                        <div class="movie-header">
+
+                            <div>
+
+                                <h3 class="movie-title">${movie.title}</h3>
+
+                                <div class="genres">${genresHtml}</div>
+
+                            </div>
+
+                            <div class="rating">⭐ ${movie.rating}</div>
+
+                        </div>
+
+                        <p class="movie-plot">${movie.plot}</p>
+
+                        <div class="movie-info">
+
+                            📅 ${movie.year} • ⏱️ ${movie.duration}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            });
+
+ 
+
+            resultsContainer.innerHTML = html;
+
+        }
+
+ 
+
+        async function searchMovies() {
+
+            const query = searchInput.value.trim();
+
+            
+
+            if (!query) {
+
+                showError('Please enter a movie description');
+
+                return;
+
+            }
+
+ 
+
+            searchButton.disabled = true;
+
+            searchButton.textContent = 'Searching...';
+
+            showLoading();
+
+ 
+
+            try {
+
+                const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
+
+                const data = await response.json();
+
+ 
+
+                if (data.success) {
+
+                    displayResults(data.recommendations);
+
+                } else {
+
+                    showError(data.error || 'An error occurred');
+
+                    showEmptyState();
+
+                }
+
+            } catch (error) {
+
+                showError('Failed to connect to server. Make sure the API is running.');
+
+                showEmptyState();
+
+                console.error('Error:', error);
+
+            } finally {
+
+                searchButton.disabled = false;
+
+                searchButton.textContent = 'Search';
+
+            }
+
+        }
+
+ 
+
+        // Event listeners
+
+        searchButton.addEventListener('click', searchMovies);
+
+        searchInput.addEventListener('keypress', (e) => {
+
+            if (e.key === 'Enter') {
+
+                searchMovies();
+
+            }
+
+        });
+
+ 
+
+        // Initialize with empty state
+
+        showEmptyState();
+
+    </script>
+
+</body>
+
+</html>
