@@ -414,4 +414,73 @@ $movieDatabase = [
 
 ];
 
+// --- Simple movie recommender API ---
+
+// Always return JSON
+header('Content-Type: application/json; charset=utf-8');
+
+// Get the query text from the URL: mv.php?query=...
+$query = isset($_GET['query']) ? trim($_GET['query']) : '';
+
+if ($query === '') {
+    echo json_encode([
+        'success' => false,
+        'error'   => 'Missing query parameter.'
+    ]);
+    exit;
+}
+
+// Normalize and split query into words
+$normalized = strtolower($query);
+$tokens = preg_split('/\s+/', $normalized);
+
+$matches = [];
+
+// Very simple "AI": score movies by how many query words appear
+// in title + plot + genres + keywords
+foreach ($movieDatabase as $movie) {
+    $haystack = strtolower(
+        $movie['title'] . ' ' .
+        $movie['plot'] . ' ' .
+        implode(' ', $movie['genres']) . ' ' .
+        implode(' ', $movie['keywords'])
+    );
+
+    $score = 0;
+    foreach ($tokens as $token) {
+        if ($token === '') continue;
+        if (strpos($haystack, $token) !== false) {
+            $score += 5;             // keyword match
+        }
+    }
+
+    // Boost by rating a little so higher-rated movies win ties
+    $score += $movie['rating'];
+
+    if ($score > 0) {
+        $movie['score'] = $score;
+        $matches[] = $movie;
+    }
+}
+
+// If nothing matched, just fall back to top-rated movies
+if (empty($matches)) {
+    $matches = $movieDatabase;
+}
+
+// Sort by score descending
+usort($matches, function ($a, $b) {
+    return $b['score'] <=> $a['score'];
+});
+
+// Return the top 5 recommendations
+$recommendations = array_slice($matches, 0, 5);
+
+echo json_encode([
+    'success'         => true,
+    'recommendations' => $recommendations
+]);
+exit;
+
+
 ?>
